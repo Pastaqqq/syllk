@@ -1,0 +1,618 @@
+以下是您修改文件路径后的完整HTML代码。所有图片、音频和视频资源的路径已更新为 `images/`、`audio/` 和 `video/` 结构（无 `assets/` 前缀），其他代码逻辑保持不变。
+
+```html
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>舍友连连看之皇讯争霸赛 | 边框连线·排行榜·动态音乐</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; user-select: none; font-family: "Microsoft YaHei", "PingFang SC", "Segoe UI", sans-serif; }
+        body { background: linear-gradient(145deg, #0f122a 0%, #1a1e35 100%); min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; position: relative; overflow-x: hidden; }
+        .floating-bg { position: fixed; pointer-events: none; z-index: 0; opacity: 0.35; filter: blur(0.8px); background-size: contain; background-repeat: no-repeat; background-position: center; will-change: transform; }
+        .obtain-effect { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0); z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; filter: drop-shadow(0 0 20px gold); animation: obtainPop 0.6s cubic-bezier(0.34, 1.2, 0.64, 1) forwards; pointer-events: none; }
+        .obtain-effect .badge-img { width: 260px; height: 260px; background-size: contain; background-repeat: no-repeat; background-position: center; }
+        .obtain-effect .glow-text { font-size: 2rem; font-weight: 900; background: linear-gradient(45deg, #FFD966, #FFB347, #FF6B6B); -webkit-background-clip: text; background-clip: text; color: transparent; text-shadow: 0 0 10px rgba(255,215,0,0.8); margin-top: -20px; letter-spacing: 2px; text-align: center; }
+        @keyframes obtainPop { 0% { transform: translate(-50%, -50%) scale(0) rotate(-20deg); opacity: 0; } 40% { transform: translate(-50%, -50%) scale(1.2) rotate(4deg); opacity: 1; } 100% { transform: translate(-50%, -50%) scale(1) rotate(0deg); opacity: 1; } }
+        .static-badge { position: fixed; background-size: contain; background-repeat: no-repeat; background-position: center; z-index: 15; pointer-events: auto; cursor: pointer; transition: all 0.2s ease; filter: drop-shadow(2px 4px 8px rgba(0,0,0,0.3)); }
+        .static-badge:hover { transform: scale(1.05); filter: drop-shadow(0 0 12px gold); z-index: 20; }
+        .static-badge.used { opacity: 0.4; filter: grayscale(0.6); pointer-events: none; cursor: default; transform: none; }
+        .game-container { background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(4px); border-radius: 36px; padding: 22px 26px 26px; box-shadow: 0 20px 40px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.1); z-index: 10; position: relative; }
+        .title { font-size: 2rem; font-weight: 900; text-align: center; background: linear-gradient(135deg, #FFE666, #FF8C66, #D666FF); background-size: 200% 200%; background-clip: text; -webkit-background-clip: text; color: transparent; margin-bottom: 12px; white-space: nowrap; cursor: pointer; }
+        .mode-select { display: flex; gap: 14px; justify-content: center; margin-bottom: 12px; flex-wrap: wrap; }
+        .mode-btn { padding: 8px 20px; border-radius: 30px; font-size: 0.9rem; font-weight: bold; border: none; cursor: pointer; background: #2a3555; color: #eee; transition: 0.2s; }
+        .mode-btn.active { background: linear-gradient(135deg, #7040ff, #5020d8); color: #fff; box-shadow: 0 0 8px #a57cff; }
+        .week-btn { background: #335577; padding: 6px 15px; border-radius: 30px; color: white; font-weight: bold; border: none; cursor: pointer; margin-left: 10px; }
+        .honor-btn { background: #aa66ff; padding: 6px 15px; border-radius: 30px; color: white; font-weight: bold; cursor: pointer; border: none; margin-left: 10px; }
+        .bgm-selector { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin: 8px 0 12px; background: rgba(0,0,0,0.4); padding: 6px 16px; border-radius: 40px; }
+        .bgm-option { background: #252b44; border: none; padding: 5px 14px; border-radius: 30px; color: #ddd; font-size: 0.85rem; font-weight: bold; cursor: pointer; transition: 0.1s; }
+        .bgm-option.active-bgm { background: #ffaa33; color: #1e1a3a; box-shadow: 0 0 6px orange; }
+        .bgm-option.locked-bgm { opacity: 0.5; cursor: not-allowed; background: #2a2a44; color: #888; }
+        .level-selector { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin-bottom: 12px; background: rgba(0,0,0,0.3); padding: 8px 12px; border-radius: 40px; }
+        .level-btn { background: #2a3555; border: none; padding: 6px 14px; border-radius: 30px; color: #ccc; font-size: 0.8rem; font-weight: bold; cursor: pointer; }
+        .level-btn.unlocked { background: #4a3f8a; color: #ffdd99; }
+        .level-btn.current { background: #ffaa33; color: #1e1a3a; box-shadow: 0 0 6px gold; }
+        .level-btn.locked { background: #2a2a44; color: #777; cursor: not-allowed; opacity: 0.5; }
+        .level-name { font-size: 1.2rem; background: #252b44; padding: 6px 20px; border-radius: 30px; color: #ffdd55; font-weight: 600; display: inline-block; margin-bottom: 12px; }
+        .info-panel { display: flex; gap: 24px; justify-content: center; margin-bottom: 18px; align-items: center; flex-wrap: wrap; }
+        .info-item { background: #1a1f35; padding: 6px 14px; border-radius: 20px; color: #ccc; font-size: 0.95rem; }
+        .info-item span { color: #ffdd55; font-weight: bold; }
+        .pause-btn, .rank-btn { background: #ff884d; padding: 6px 18px; border-radius: 30px; color: white; font-weight: bold; cursor: pointer; border: none; font-size: 0.9rem; margin:0 5px; }
+        .board { display: grid; gap: 8px; background: #151828; padding: 16px; border-radius: 20px; margin-bottom: 18px; }
+        .cell { width: 58px; height: 58px; background: #252b44; border-radius: 12px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.15s; }
+        .cell img { width: 44px; height: 44px; object-fit: contain; pointer-events: none; }
+        .cell.selected { background: #ffdd55; transform: scale(0.96); box-shadow: 0 0 0 3px #ffaa33; }
+        .cell.matched { visibility: hidden; opacity: 0; pointer-events: none; }
+        .btns { display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; margin-top: 8px; }
+        button { background: linear-gradient(to bottom, #5540ff, #3d20c8); border: none; padding: 10px 24px; border-radius: 20px; color: white; font-weight: bold; cursor: pointer; }
+        button:active { transform: scale(0.96); }
+        canvas { position: fixed; top:0; left:0; width:100%; height:100%; pointer-events: none; z-index:1000; }
+        .toast-tip { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); background: #000000cc; backdrop-filter: blur(10px); padding: 14px 28px; border-radius: 60px; color: #ffdd99; font-weight: bold; z-index: 10001; font-size: 1.1rem; pointer-events: none; animation: fadeOutLong 4s forwards; white-space: nowrap; }
+        @keyframes fadeOutLong { 0% { opacity: 1; } 80% { opacity: 1; } 100% { opacity: 0; visibility: hidden; } }
+        .rank-modal, .honor-modal { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: #1e1a3a; border-radius: 30px; padding: 25px; z-index: 20000; border: 2px solid gold; width: 500px; max-width: 90vw; text-align: center; backdrop-filter: blur(20px); }
+        .rank-modal h3, .honor-modal h3 { color: #ffdd55; margin-bottom: 20px; font-size: 1.8rem; }
+        .honor-item { margin: 20px 0; padding: 15px; background: #2a2a55; border-radius: 20px; cursor: pointer; transition: 0.2s; }
+        .honor-item:hover { background: #3a3a77; transform: scale(1.02); }
+        .honor-img { width: 150px; height: 150px; object-fit: contain; margin: 10px auto; display: block; border-radius: 12px; }
+        .fullscreen-overlay { position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.95); z-index: 30000; display: flex; align-items: center; justify-content: center; flex-direction: column; }
+        .fullscreen-img { max-width: 90vw; max-height: 90vh; object-fit: contain; }
+        .fullscreen-video { max-width: 90vw; max-height: 90vh; }
+        .close-fullscreen { position: absolute; top: 20px; right: 30px; font-size: 40px; color: white; cursor: pointer; z-index: 30001; background: rgba(0,0,0,0.5); width: 50px; height: 50px; border-radius: 25px; display: flex; align-items: center; justify-content: center; }
+        .close-fullscreen:hover { background: rgba(255,0,0,0.7); }
+        @media (max-width: 760px) { .cell { width: 46px; height: 46px; } .cell img { width: 36px; } .obtain-effect .badge-img { width: 180px; height: 180px; } .glow-text { font-size: 1.2rem; } .title { font-size: 1.4rem; white-space: normal; } .honor-modal { width: 90vw; padding: 15px; } .honor-img { width: 100px; height: 100px; } }
+    </style>
+</head>
+<body>
+<div class="game-container">
+    <div class="title" id="gameTitle">📸 舍友连连看之皇讯争霸赛</div>
+    <div class="mode-select">
+        <button class="mode-btn active" data-mode="level">🏆 闯关模式</button>
+        <button class="mode-btn" data-mode="endless">♾️ 无尽模式</button>
+        <button class="mode-btn" data-mode="timelimit">⏳ 限时模式</button>
+        <button class="mode-btn" data-mode="timerace">⏱️ 计时模式</button>
+        <button id="weekSelectBtn" class="week-btn" style="display:none;">📅 周目选择</button>
+        <button id="honorWallBtn" class="honor-btn" style="display:none;">🏅 荣誉墙</button>
+    </div>
+    <div class="bgm-selector" id="bgmSelector"></div>
+    <div class="level-selector" id="levelSelector"></div>
+    <div style="text-align:center;"><div class="level-name" id="levelName">⛩️ 斜会翘</div></div>
+    <div class="info-panel">
+        <div class="info-item" id="timeDisplay">⏱️ 剩余 <span id="time">110</span>s</div>
+        <div class="info-item">🏆 分数 <span id="score">0</span></div>
+        <div class="info-item">🎮 关卡 <span id="level">1</span>/9</div>
+        <button class="pause-btn" id="pauseBtn">⏸️ 暂停</button>
+        <button class="rank-btn" id="rankBtn">🏅 排行榜</button>
+    </div>
+    <div class="board" id="board"></div>
+    <div class="btns"><button id="restartBtn">🔄 重新开始</button><button id="hintBtn">💡 提示</button><button id="reshuffleBtn">♻️ 洗牌</button></div>
+</div>
+<canvas id="lineCanvas"></canvas>
+
+<!-- 音频资源 - 路径已修改为 audio/ -->
+<audio id="bgm1" src="audio/bgm1.m4a"></audio>
+<audio id="bgm2" src="audio/bgm2.m4a"></audio>
+<audio id="bgm3" src="audio/bgm3.m4a"></audio>
+<audio id="bgm0" src="audio/bgm0.m4a"></audio>
+<audio id="bgm00" src="audio/bgm00.m4a"></audio>
+<audio id="wyx" src="audio/wyx.m4a"></audio>
+<audio id="sndA" src="audio/a.m4a"></audio>
+<audio id="sndB" src="audio/b.m4a"></audio>
+<audio id="sndC" src="audio/c.m4a"></audio>
+<audio id="sndD" src="audio/d.m4a"></audio>
+<audio id="sndE" src="audio/e.m4a"></audio>
+<audio id="sndF" src="audio/f.m4a"></audio>
+<audio id="sndG" src="audio/g.m4a"></audio>
+<audio id="sndH" src="audio/h.m4a"></audio>
+<audio id="match" src="audio/match.m4a"></audio>
+<audio id="winFanfare" src="audio/w.m4a"></audio>
+<audio id="alert30" src="audio/30.m4a"></audio>
+
+<script>
+    // ======================= 基础配置 =======================
+    const levelStages = [
+        { row:6, col:8, baseTime:110, name:"⛩️ 斜会翘" }, { row:6, col:8, baseTime:100, name:"✈️ 飞飞某" }, { row:6, col:8, baseTime:105, name:"👑 皇迅" },
+        { row:6, col:8, baseTime:95, name:"🌉 一座桥" }, { row:8, col:8, baseTime:105, name:"☔ 雨停留" }, { row:8, col:10, baseTime:110, name:"🏛️ 天使城" },
+        { row:8, col:10, baseTime:100, name:"👑 王严选" }, { row:8, col:12, baseTime:110, name:"🏞️ 王好林" }, { row:10, col:10, baseTime:120, name:"📀 账号" }
+    ];
+    const endlessConfig = { row:8, col:10, time:999999, name:"♾️ 无尽模式" };
+    const timelimitConfig = { row:8, col:10, limitTime:90 };
+    const timeraceConfig = { row:6, col:8 };
+    
+    // 图片资源 - 路径已修改为 images/
+    const allImages = [
+        "images/1.png", "images/2.png", "images/3.png", "images/4.png",
+        "images/5.png", "images/6.png", "images/7.png", "images/8.png",
+        "images/9.png", "images/10.png", "images/11.png", "images/12.png",
+        "images/13.png", "images/14.png", "images/15.png", "images/16.png"
+    ];
+    
+    let gameMode = "level", ROW, COL, timeLeft, timer, currentLevel = 0, map = [], domCells = [], selectedCell = null, score = 0;
+    let collectedBadges = [];
+    let currentWeek = 1;
+    let maxWeekUnlocked = 1;
+    let weekUnlockedLevels = {1: [0]};
+    let isManualSelect = false, currentBGM = null, currentAudio = null, isPaused = false;
+    let bgmCycleActive = false, bgmCycleIndex = 0, currentBgmOrder = [];
+    let isInWyxLevel = false;
+    let currentRunScore = 0;
+    let timeraceStartTime = null;
+    let isGameFinished = false;
+    let timeraceInterval = null;
+    let timelimitTimer = null;
+    let lastAlert30Played = false;
+    let honorUnlocked = false;
+    let honors = [];
+    
+    let scoreHistory = JSON.parse(localStorage.getItem('linkScoreHistory') || '[]');
+    let timeRaceHistory = JSON.parse(localStorage.getItem('linkTimeRaceHistory') || '[]');
+    let savedHonors = JSON.parse(localStorage.getItem('gameHonors') || '[]');
+    let savedMaxWeek = parseInt(localStorage.getItem('maxWeekUnlocked') || '1');
+    let savedWeekUnlocked = JSON.parse(localStorage.getItem('weekUnlockedLevels') || '{"1":[0]}');
+    
+    let bgmUnlocked = { bgm1: true, bgm2: true, bgm3: true, bgm0: false, bgm00: false };
+    const bgmItems = [
+        { id: "bgm1", display: "🐻", needLevel: 0 }, { id: "bgm2", display: "🐷", needLevel: 0 }, { id: "bgm3", display: "🐑", needLevel: 0 },
+        { id: "bgm0", display: "秀莲矮清-蓝心201F4", needLevel: 5 }, { id: "bgm00", display: "入院-蓝心201F4", needLevel: 9 }
+    ];
+    
+    const canvas = document.getElementById('lineCanvas'), ctx = canvas.getContext('2d');
+    
+    function saveScoreToHistory(scoreVal) { scoreHistory.push(scoreVal); scoreHistory.sort((a,b)=>b-a); if(scoreHistory.length>20) scoreHistory=scoreHistory.slice(0,20); localStorage.setItem('linkScoreHistory', JSON.stringify(scoreHistory)); }
+    function saveTimeToHistory(ms) { timeRaceHistory.push(ms); timeRaceHistory.sort((a,b)=>a-b); if(timeRaceHistory.length>20) timeRaceHistory=timeRaceHistory.slice(0,20); localStorage.setItem('linkTimeRaceHistory', JSON.stringify(timeRaceHistory)); }
+    function saveHonors() { localStorage.setItem('gameHonors', JSON.stringify(honors)); }
+    function saveMaxWeek() { localStorage.setItem('maxWeekUnlocked', maxWeekUnlocked); }
+    function saveWeekUnlocked() { localStorage.setItem('weekUnlockedLevels', JSON.stringify(weekUnlockedLevels)); }
+    
+    function getUnlockedLevelsForWeek(week){ if(!weekUnlockedLevels[week]) weekUnlockedLevels[week] = [0]; return weekUnlockedLevels[week]; }
+    function setUnlockedLevelsForWeek(week, levels){ weekUnlockedLevels[week] = levels; saveWeekUnlocked(); }
+    function unlockLevelForWeek(week, levelIdx){ let levels = getUnlockedLevelsForWeek(week); if(!levels.includes(levelIdx)){ levels.push(levelIdx); setUnlockedLevelsForWeek(week, levels); } }
+    
+    function showRankModal(showCurrent=true, currentScoreVal=null, isTimeMode=false, currentTimeMs=null) { 
+        let msg = `<h3>🏆 ${isTimeMode ? '计时模式最快' : '排行榜'}</h3>`; 
+        if(isTimeMode){
+            for(let i=0;i<Math.min(10,timeRaceHistory.length);i++){ let sec=(timeRaceHistory[i]/1000).toFixed(2); msg+=`<p>${i+1}. ${sec} 秒</p>`; }
+            if(showCurrent && currentTimeMs!==null){ let rank=1; for(let t of timeRaceHistory) if(t<currentTimeMs) rank++; msg+=`<hr><p>✨ 本次用时: ${(currentTimeMs/1000).toFixed(2)} 秒</p><p>🏅 历史排名: 第${rank}名</p>`; }
+        } else {
+            for(let i=0;i<Math.min(10,scoreHistory.length);i++) msg+=`<p>${i+1}. ${scoreHistory[i]} 分</p>`; 
+            if(showCurrent && currentScoreVal!==null){ let r=1; for(let s of scoreHistory) if(s>currentScoreVal) r++; msg+=`<hr><p>✨ 本次得分: ${currentScoreVal} 分</p><p>🏅 历史排名: 第${r}名</p>`; }
+        }
+        const modal=document.createElement('div'); modal.className='rank-modal'; modal.innerHTML=msg+'<button onclick="this.parentElement.remove()">关闭</button>'; document.body.appendChild(modal); 
+    }
+    
+    // ========== BGM 管理 ==========
+    function stopAllBgm() { 
+        if(currentAudio) { currentAudio.pause(); currentAudio.currentTime = 0; currentAudio.onended = null; } 
+        currentAudio = null; 
+        bgmCycleActive = false; 
+        ["bgm1","bgm2","bgm3","bgm0","bgm00","wyx"].forEach(id => { const a = document.getElementById(id); if(a) { a.pause(); a.currentTime = 0; a.onended = null; } });
+    }
+    function playSingleBgm(bgmId, loop=true, onEnded=null) { 
+        stopAllBgm(); 
+        const audio = document.getElementById(bgmId); 
+        if(audio) { 
+            audio.loop = loop; 
+            audio.volume = 0.35; 
+            audio.onended = onEnded;
+            audio.play().catch(e=>console.log("BGM play failed:", e)); 
+            currentAudio = audio; 
+            currentBGM = bgmId; 
+        } 
+        updateBgmUI();
+    }
+    function getUnlockedBgmOrder() { 
+        let order = []; 
+        if(bgmUnlocked.bgm1) order.push("bgm1"); 
+        if(bgmUnlocked.bgm2) order.push("bgm2"); 
+        if(bgmUnlocked.bgm3) order.push("bgm3"); 
+        if(bgmUnlocked.bgm0) order.push("bgm0"); 
+        if(bgmUnlocked.bgm00) order.push("bgm00"); 
+        return order; 
+    }
+    function startBgmCycle(keepIndex=false) { 
+        if(isManualSelect) return; 
+        if(isInWyxLevel){ playSingleBgm("wyx",true); return; } 
+        let order = getUnlockedBgmOrder();
+        if(order.length === 0) return;
+        if(!keepIndex) bgmCycleIndex = 0;
+        else bgmCycleIndex = bgmCycleIndex % order.length;
+        bgmCycleActive = true; 
+        function playNext(){ 
+            if(!bgmCycleActive || isManualSelect || isInWyxLevel) return; 
+            let orderNow = getUnlockedBgmOrder();
+            if(orderNow.length === 0) return;
+            let idx = bgmCycleIndex % orderNow.length;
+            let id = orderNow[idx];
+            const audio = document.getElementById(id); 
+            if(audio){ 
+                audio.loop=false; 
+                audio.volume=0.35; 
+                audio.onended=()=>{ 
+                    if(bgmCycleActive && !isManualSelect && !isInWyxLevel){ 
+                        bgmCycleIndex++; 
+                        playNext(); 
+                    } 
+                }; 
+                audio.play().catch(e=>console.log); 
+                currentAudio=audio; 
+                currentBGM=id; 
+                updateBgmUI();
+            } else { 
+                bgmCycleIndex++; 
+                playNext(); 
+            } 
+        } 
+        playNext(); 
+    }
+    function unlockBgm0() { 
+        if(!bgmUnlocked.bgm0 && currentWeek === 1){ 
+            bgmUnlocked.bgm0=true; 
+            showToast("🎵 奖励曲已解锁：秀莲矮清-蓝心201F4！",4000); 
+            updateBgmUI(); 
+        } 
+    }
+    function unlockBgm00() { 
+        if(!bgmUnlocked.bgm00 && currentWeek === 1){ 
+            bgmUnlocked.bgm00=true; 
+            showToast("🎵 奖励曲已解锁：入院-蓝心201F4！",4000); 
+            updateBgmUI(); 
+        } 
+    }
+    function checkWyxLevelAndBgm() { 
+        let isWyx = (gameMode==='level' && levelStages[currentLevel]?.name === "👑 王严选");
+        if(isWyx && !isInWyxLevel){ 
+            isInWyxLevel=true; 
+            playSingleBgm("wyx",true); 
+        } else if(!isWyx && isInWyxLevel){ 
+            isInWyxLevel=false; 
+            if(!isManualSelect){ 
+                stopAllBgm(); 
+                let order = getUnlockedBgmOrder();
+                if(order.length > 0){
+                    let firstId = order[0];
+                    const audio = document.getElementById(firstId);
+                    if(audio){
+                        audio.loop=false;
+                        audio.volume=0.35;
+                        audio.onended=()=>{
+                            if(!isManualSelect && !isInWyxLevel) startBgmCycle(true);
+                        };
+                        audio.play().catch(e=>console.log);
+                        currentAudio=audio;
+                        currentBGM=firstId;
+                        updateBgmUI();
+                    } else { startBgmCycle(true); }
+                } else { startBgmCycle(true); }
+            } 
+        }
+    }
+    function selectBgm(bgmId) { 
+        if(!bgmUnlocked[bgmId]) { showToast("🔒 未解锁，继续通关吧"); return; } 
+        isManualSelect=true; 
+        isInWyxLevel=false; 
+        stopAllBgm(); 
+        playSingleBgm(bgmId,true); 
+        updateBgmUI(); 
+    }
+    function resetBgmToAuto() { 
+        isManualSelect=false; 
+        checkWyxLevelAndBgm(); 
+        if(!isInWyxLevel) startBgmCycle(true); 
+        updateBgmUI(); 
+    }
+    function updateBgmUI() { 
+        const container=document.getElementById('bgmSelector'); 
+        if(!container) return; 
+        container.innerHTML=''; 
+        bgmItems.forEach(b=>{ 
+            const btn=document.createElement('button'); 
+            btn.textContent=b.display; 
+            btn.className='bgm-option'; 
+            if(bgmUnlocked[b.id]){ 
+                if(currentBGM === b.id) btn.classList.add('active-bgm'); 
+                btn.onclick=()=>selectBgm(b.id); 
+            } else { 
+                btn.classList.add('locked-bgm'); 
+                btn.onclick=()=>showToast(`🔒 通关第${b.needLevel}关解锁`); 
+            } 
+            container.appendChild(btn); 
+        }); 
+    }
+    
+    // ========== 背景漂浮 & 道具 ==========
+    let floatingElements = [], animFrame = null;
+    function initFloatingBackground() { floatingElements.forEach(el=>el.remove()); floatingElements=[]; for(let i=0;i<24;i++){ const rand=allImages[Math.floor(Math.random()*allImages.length)]; const d=document.createElement('div'); d.className='floating-bg'; d.style.backgroundImage=`url(${rand})`; const s=45+Math.random()*65; d.style.width=`${s}px`; d.style.height=`${s}px`; d.style.left=`${Math.random()*100}%`; d.style.top=`${Math.random()*100}%`; d.style.opacity=0.2+Math.random()*0.3; d.vx=(Math.random()-0.5)*0.9; d.vy=(Math.random()-0.5)*0.8; d.angle=Math.random()*360; d.rotSpeed=(Math.random()-0.5)*0.8; document.body.appendChild(d); floatingElements.push(d); } if(animFrame) cancelAnimationFrame(animFrame); function move(){ floatingElements.forEach(el=>{ let l=parseFloat(el.style.left), t=parseFloat(el.style.top); let nl=l+el.vx, nt=t+el.vy; if(nl<-5) nl=-5, el.vx=Math.abs(el.vx); if(nl>95) nl=95, el.vx=-Math.abs(el.vx); if(nt<-5) nt=-5, el.vy=Math.abs(el.vy); if(nt>95) nt=95, el.vy=-Math.abs(el.vy); el.style.left=`${nl}%`; el.style.top=`${nt}%`; el.style.transform=`rotate(${el.angle}deg)`; el.angle+=el.rotSpeed; }); animFrame=requestAnimationFrame(move); } move(); }
+    function isOverlap(x1,y1,w1,h1,x2,y2,w2,h2){ return !(x1+w1<x2||x2+w2<x1||y1+h1<y2||y2+h2<y1); }
+    function getNonOverlapPosition(w,h,existingBadges, allowOverlap=false){
+        const rect=document.querySelector('.game-container').getBoundingClientRect();
+        for(let i=0;i<200;i++){
+            let x=Math.random()*(window.innerWidth-w-40)+20, y=Math.random()*(window.innerHeight-h-40)+20;
+            if(!(x+w<rect.left-20||x>rect.right+20||y+h<rect.top-20||y>rect.bottom+20)) continue;
+            if(allowOverlap) return {x,y};
+            let ok=true;
+            for(let b of existingBadges) if(!b.used && isOverlap(x,y,w,h,b.x,b.y,b.width,b.height)){ ok=false; break; }
+            if(ok) return {x,y};
+        }
+        return {x:window.innerWidth-w-40, y:window.innerHeight-h-40};
+    }
+    function onBadgeClick(badge) { if(badge.used) return; if(gameMode !== "level") { showToast("✨ 只有闯关模式可加时"); return; } const addSec = (badge.levelIndex + 1) * 10; timeLeft += addSec; document.getElementById('time').innerText = timeLeft; showToast(`⏰ +${addSec}秒！ ${levelStages[badge.levelIndex].name} 伙伴助力 (已使用)`, 3500); badge.used = true; if(badge.element) badge.element.classList.add('used'); lastAlert30Played = false; if(timer && !isPaused) { clearInterval(timer); startTimer(); } }
+    async function showObtainEffectAndFix(levelIdx, isSecondFirst=false) { 
+        const winAudio=document.getElementById('winFanfare'); if(winAudio){ winAudio.currentTime=0; winAudio.play().catch(()=>{}); } 
+        let badgeSrc = isSecondFirst&&levelIdx===0 ? "images/d1-1.png" : `images/d${levelIdx+1}.png`; 
+        const container=document.createElement('div'); container.className='obtain-effect'; container.innerHTML=`<div class="badge-img" style="background-image: url(${badgeSrc});"></div><div class="glow-text">✨ 新获得 · ${levelStages[levelIdx].name} ✨</div>`; document.body.appendChild(container); await new Promise(r=>setTimeout(r,800)); if(container&&container.remove) container.remove(); 
+        const w=140, h=140; const startX=window.innerWidth/2-w/2, startY=window.innerHeight/2-h/2; const temp=document.createElement('div'); temp.style.cssText=`position:fixed; width:${w}px; height:${h}px; background-image:url(${badgeSrc}); background-size:contain; background-repeat:no-repeat; left:${startX}px; top:${startY}px; z-index:9998; transition:all 0.8s cubic-bezier(0.25,0.46,0.45,0.94); pointer-events:none; filter:drop-shadow(0 0 12px gold);`; document.body.appendChild(temp); 
+        const allowOverlap = collectedBadges.length >= 15;
+        const target=getNonOverlapPosition(w,h,collectedBadges.filter(b=>!b.used), allowOverlap);
+        await new Promise(r=>setTimeout(r,20)); temp.style.left=`${target.x}px`; temp.style.top=`${target.y}px`; temp.style.filter='drop-shadow(2px 4px 8px rgba(0,0,0,0.3))'; await new Promise(r=>setTimeout(r,850)); const staticDiv=document.createElement('div'); staticDiv.className='static-badge'; staticDiv.style.cssText=`background-image:url(${badgeSrc}); width:${w}px; height:${h}px; left:${target.x}px; top:${target.y}px;`; const badgeObj = { levelIndex: levelIdx, element: staticDiv, used: false, x: target.x, y: target.y, width: w, height: h }; staticDiv.addEventListener('click',(e)=>{ e.stopPropagation(); onBadgeClick(badgeObj); }); document.body.appendChild(staticDiv); temp.remove(); collectedBadges.push(badgeObj); if(levelIdx===0 && currentWeek===1 && !honorUnlocked) showToast("💡 提示：点击背景人物可为当前关卡加时！每个道具只能使用一次", 5000); }
+    
+    // ========== 核心连线算法 ==========
+    function isRowClear(row, ca, cb) { let minC = Math.min(ca, cb), maxC = Math.max(ca, cb); for(let c = minC+1; c < maxC; c++) if(map[row][c] !== null) return false; return true; }
+    function isColClear(col, ra, rb) { let minR = Math.min(ra, rb), maxR = Math.max(ra, rb); for(let r = minR+1; r < maxR; r++) if(map[r][col] !== null) return false; return true; }
+    function canConnectDirect(r1,c1,r2,c2) { if(r1===r2 && isRowClear(r1,c1,c2)) return true; if(c1===c2 && isColClear(c1,r1,r2)) return true; return false; }
+    function canConnectOneCorner(r1,c1,r2,c2) { if(map[r1][c2] === null && canConnectDirect(r1,c1,r1,c2) && canConnectDirect(r2,c2,r1,c2)) return [[r1,c1],[r1,c2],[r2,c2]]; if(map[r2][c1] === null && canConnectDirect(r1,c1,r2,c1) && canConnectDirect(r2,c2,r2,c1)) return [[r1,c1],[r2,c1],[r2,c2]]; return null; }
+    function canConnectTwoCorner(r1,c1,r2,c2) { for(let c=0;c<COL;c++) if(c!==c1 && c!==c2 && map[r1][c]===null && map[r2][c]===null && canConnectDirect(r1,c1,r1,c) && canConnectDirect(r1,c,r2,c) && canConnectDirect(r2,c,r2,c2)) return [[r1,c1],[r1,c],[r2,c],[r2,c2]]; for(let r=0;r<ROW;r++) if(r!==r1 && r!==r2 && map[r][c1]===null && map[r][c2]===null && canConnectDirect(r1,c1,r,c1) && canConnectDirect(r,c1,r,c2) && canConnectDirect(r,c2,r2,c2)) return [[r1,c1],[r,c1],[r,c2],[r2,c2]]; return null; }
+    function isBorderConnect(r1,c1,r2,c2){ if(map[r1][c1]!==map[r2][c2]) return false; let points=[]; if(r1===r2 && (r1===0 || r1===ROW-1)){ let minC=Math.min(c1,c2),maxC=Math.max(c1,c2); let allClear=true; for(let c=minC+1;c<maxC;c++) if(map[r1][c]!==null){allClear=false;break;} if(allClear) points=[[r1,c1],[r1,c2]]; } else if(c1===c2 && (c1===0 || c1===COL-1)){ let minR=Math.min(r1,r2),maxR=Math.max(r1,r2); let allClear=true; for(let r=minR+1;r<maxR;r++) if(map[r][c1]!==null){allClear=false;break;} if(allClear) points=[[r1,c1],[r2,c1]]; } else if((r1===0 && r2===ROW-1) || (r1===ROW-1 && r2===0)){ if(c1===c2){ let ok=true; for(let r=0;r<ROW;r++) if(r!==r1 && r!==r2 && map[r][c1]!==null){ok=false;break;} if(ok) points=[[r1,c1],[r2,c1]]; } } else if((c1===0 && c2===COL-1) || (c1===COL-1 && c2===0)){ if(r1===r2){ let ok=true; for(let c=0;c<COL;c++) if(c!==c1 && c!==c2 && map[r1][c]!==null){ok=false;break;} if(ok) points=[[r1,c1],[r1,c2]]; } } if(points.length>0) return points; return null; }
+    function findPathWithBorder(r1,c1,r2,c2){ if(map[r1][c1] !== map[r2][c2]) return null; if(canConnectDirect(r1,c1,r2,c2)) return [[r1,c1],[r2,c2]]; let oneCorner = canConnectOneCorner(r1,c1,r2,c2); if(oneCorner) return oneCorner; let twoCorner = canConnectTwoCorner(r1,c1,r2,c2); if(twoCorner) return twoCorner; let border = isBorderConnect(r1,c1,r2,c2); if(border) return border; return null; }
+    
+    // ========== 游戏逻辑 ==========
+    function hasRemainingMove(){ let ps=[]; for(let i=0;i<ROW;i++) for(let j=0;j<COL;j++) if(map[i][j]!==null) ps.push({r:i,c:j,val:map[i][j]}); for(let a=0;a<ps.length;a++) for(let b=a+1;b<ps.length;b++) if(ps[a].val===ps[b].val&&findPathWithBorder(ps[a].r,ps[a].c,ps[b].r,ps[b].c)) return true; return false; }
+    function reshuffleBoard(){ let rem=[]; for(let i=0;i<ROW;i++) for(let j=0;j<COL;j++) if(map[i][j]!==null) rem.push(map[i][j]); if(rem.length%2!==0) return; for(let i=rem.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [rem[i],rem[j]]=[rem[j],rem[i]]; } let idx=0; for(let i=0;i<ROW;i++) for(let j=0;j<COL;j++) if(map[i][j]!==null){ map[i][j]=rem[idx++]; domCells[i][j].innerHTML=`<img src="${map[i][j]}">`; domCells[i][j].classList.remove('matched'); } else { domCells[i][j].classList.add('matched'); domCells[i][j].innerHTML=""; } if(selectedCell){ selectedCell.classList.remove('selected'); selectedCell=null; } clearLine(); if(!hasRemainingMove()) setTimeout(()=>reshuffleBoard(),100); }
+    function isAllCleared(){ for(let i=0;i<ROW;i++) for(let j=0;j<COL;j++) if(map[i][j]!==null) return false; return true; }
+    function addScore(val=10){ score+=val; if(gameMode==='endless' || gameMode==='timelimit') currentRunScore=score; document.getElementById('score').innerText=score; }
+    function drawPath(points){ clearLine(); if(!points||points.length<2) return; ctx.lineWidth=5; ctx.strokeStyle='#FFD966'; ctx.shadowBlur=8; ctx.beginPath(); const s=getCellCenter(points[0][0],points[0][1]); ctx.moveTo(s.x,s.y); for(let i=1;i<points.length;i++){ const p=getCellCenter(points[i][0],points[i][1]); ctx.lineTo(p.x,p.y); } ctx.stroke(); ctx.shadowBlur=0; }
+    function getCellCenter(r,c){ if(!domCells[r]||!domCells[r][c]) return {x:0,y:0}; const rect=domCells[r][c].getBoundingClientRect(); return {x:rect.left+rect.width/2, y:rect.top+rect.height/2}; }
+    function clearLine(){ ctx.clearRect(0,0,canvas.width,canvas.height); }
+    function resizeCanvas(){ canvas.width=window.innerWidth; canvas.height=window.innerHeight; clearLine(); }
+    function eliminate(cellA,cellB,path){ const r1=+cellA.dataset.r,c1=+cellA.dataset.c,r2=+cellB.dataset.r,c2=+cellB.dataset.c; drawPath(path); setTimeout(()=>{ map[r1][c1]=null; map[r2][c2]=null; cellA.classList.add('matched'); cellB.classList.add('matched'); cellA.innerHTML=""; cellB.innerHTML=""; clearLine(); const m=document.getElementById('match'); if(m){ m.currentTime=0; m.play().catch(()=>{}); } addScore(); if(selectedCell){ selectedCell.classList.remove('selected'); selectedCell=null; } if(isAllCleared()) onGameWin(); else if(!hasRemainingMove()) setTimeout(()=>reshuffleBoard(),200); },280); }
+    function playSoundByImg(src){ const m=src.match(/\/(\d+)\.png/); if(!m) return; const n=parseInt(m[1]); let audio=null; if(n<=2) audio=document.getElementById('sndA'); else if(n<=4) audio=document.getElementById('sndB'); else if(n<=6) audio=document.getElementById('sndC'); else if(n<=8) audio=document.getElementById('sndD'); else if(n<=10) audio=document.getElementById('sndE'); else if(n<=12) audio=document.getElementById('sndF'); else if(n<=14) audio=document.getElementById('sndG'); else audio=document.getElementById('sndH'); if(audio){ audio.currentTime=0; audio.play().catch(()=>{}); } }
+    function onCellClick(e){ if(isPaused || isGameFinished) return; const cell=e.currentTarget; if(cell.classList.contains('matched')) return; const r=+cell.dataset.r,c=+cell.dataset.c; playSoundByImg(map[r][c]); if(!selectedCell){ if(selectedCell) selectedCell.classList.remove('selected'); selectedCell=cell; cell.classList.add('selected'); return; } if(selectedCell===cell){ selectedCell.classList.remove('selected'); selectedCell=null; return; } const r1=+selectedCell.dataset.r,c1=+selectedCell.dataset.c; const path=findPathWithBorder(r1,c1,r,c); if(path) eliminate(selectedCell,cell,path); else{ selectedCell.classList.remove('selected'); selectedCell=cell; cell.classList.add('selected'); } }
+    function generateEvenMap(rows,cols){ const total=rows*cols, pairs=total/2; let pool=[], used=[...allImages]; for(let i=used.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [used[i],used[j]]=[used[j],used[i]]; } for(let i=0;i<pairs;i++){ const icon=used[i%used.length]; pool.push(icon,icon); } for(let i=pool.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [pool[i],pool[j]]=[pool[j],pool[i]]; } let m=[]; for(let i=0;i<rows;i++){ m[i]=[]; for(let j=0;j<cols;j++) m[i][j]=pool[i*cols+j]; } return m; }
+    function checkAndPlay30Alert() { if(gameMode==='level' && timeLeft<=30 && !lastAlert30Played && !isPaused) { lastAlert30Played=true; const alertAudio=document.getElementById('alert30'); if(alertAudio){ alertAudio.currentTime=0; alertAudio.play().catch(()=>{}); } } }
+    function startTimer(){ if(timer) clearInterval(timer); if(gameMode!=='level' || isPaused) return; timer=setInterval(()=>{ if(!isPaused && timeLeft>0){ timeLeft--; document.getElementById('time').innerText=timeLeft; checkAndPlay30Alert(); if(timeLeft<=0){ clearInterval(timer); alert("⏰ 时间用完了！重新挑战"); initGame(); } } },1000); }
+    function startTimelimitTimer(){ if(timelimitTimer) clearInterval(timelimitTimer); if(gameMode!=='timelimit' || isPaused) return; timelimitTimer=setInterval(()=>{ if(!isPaused && timeLeft>0){ timeLeft--; document.getElementById('time').innerText=timeLeft; if(timeLeft<=0){ clearInterval(timelimitTimer); alert("⏰ 时间到！游戏结束"); saveScoreToHistory(currentRunScore); showRankModal(true, currentRunScore, false); currentRunScore=0; initGame(); } } },1000); }
+    function showHint(){ if(isPaused) return; let ps=[]; for(let i=0;i<ROW;i++) for(let j=0;j<COL;j++) if(map[i][j]!==null) ps.push({r:i,c:j,val:map[i][j]}); for(let a=0;a<ps.length;a++) for(let b=a+1;b<ps.length;b++) if(ps[a].val===ps[b].val&&findPathWithBorder(ps[a].r,ps[a].c,ps[b].r,ps[b].c)){ const ca=domCells[ps[a].r][ps[a].c], cb=domCells[ps[b].r][ps[b].c]; ca.classList.add('selected'); cb.classList.add('selected'); setTimeout(()=>{ ca.classList.remove('selected'); cb.classList.remove('selected'); },800); return; } alert("🤔 暂无可连对子"); }
+    function updateLevelSelector(){ 
+        const container=document.getElementById('levelSelector'); 
+        container.innerHTML=''; 
+        let unlockedThisWeek = getUnlockedLevelsForWeek(currentWeek);
+        for(let i=0;i<levelStages.length;i++){ 
+            const btn=document.createElement('button'); 
+            btn.textContent=`${i+1}. ${levelStages[i].name.substring(0,4)}`; 
+            btn.className='level-btn'; 
+            if(unlockedThisWeek.includes(i)){ 
+                btn.classList.add('unlocked'); 
+                if(gameMode==='level' && currentLevel===i) btn.classList.add('current'); 
+                btn.onclick=()=>{ if(gameMode==='level'){ currentLevel=i; initGame(); } else alert('非闯关模式不可切换'); }; 
+            } else { 
+                btn.classList.add('locked'); 
+                btn.onclick=()=>showToast(`🔒 请先通关第${i}关`); 
+            } 
+            container.appendChild(btn); 
+        } 
+    }
+    function getLevelTime(levelIdx){ let base = levelStages[levelIdx].baseTime; let reduce = (currentWeek-1) * 8; return Math.max(15, base - reduce); }
+    
+    function addHonor(type, src, name){
+        if(!honors.some(h=>h.src===src)){
+            honors.push({type, src, name});
+            saveHonors();
+            showToast(`🏅 荣誉解锁：${name}！`, 4000);
+        }
+    }
+    
+    function showFullscreenMedia(src, type){
+        let wasPlaying = (currentAudio && !currentAudio.paused);
+        let savedBgmCycleIndex = bgmCycleIndex;
+        let savedBgmOrder = [...currentBgmOrder];
+        let savedCurrentAudio = currentAudio;
+        let savedCurrentTime = currentAudio ? currentAudio.currentTime : 0;
+        let savedIsManualSelect = isManualSelect;
+        
+        if(currentAudio) { currentAudio.pause(); }
+        
+        const overlay = document.createElement('div');
+        overlay.className = 'fullscreen-overlay';
+        const closeBtn = document.createElement('div');
+        closeBtn.className = 'close-fullscreen';
+        closeBtn.innerHTML = '✕';
+        closeBtn.onclick = (e) => { e.stopPropagation(); cleanup(); };
+        overlay.appendChild(closeBtn);
+        
+        let video = null;
+        const cleanup = () => {
+            if(video) video.pause();
+            overlay.remove();
+            if(wasPlaying) {
+                if(savedCurrentAudio && savedCurrentAudio.id && !savedIsManualSelect && !isInWyxLevel) {
+                    let audio = document.getElementById(savedCurrentAudio.id);
+                    if(audio){
+                        audio.currentTime = savedCurrentTime;
+                        audio.loop = false;
+                        audio.volume = 0.35;
+                        audio.onended = () => {
+                            if(!isManualSelect && !isInWyxLevel) startBgmCycle(true);
+                        };
+                        audio.play().catch(e=>console.log);
+                        currentAudio = audio;
+                        currentBGM = savedCurrentAudio.id;
+                        updateBgmUI();
+                        return;
+                    }
+                }
+                startBgmCycle(true);
+            }
+        };
+        
+        if(type === 'image'){
+            const img = document.createElement('img');
+            img.src = src;
+            img.className = 'fullscreen-img';
+            overlay.appendChild(img);
+            overlay.onclick = (e) => { if(e.target === overlay) cleanup(); };
+        } else {
+            video = document.createElement('video');
+            video.src = src;
+            video.className = 'fullscreen-video';
+            video.controls = true;
+            video.autoplay = true;
+            overlay.appendChild(video);
+            overlay.onclick = (e) => { if(e.target === overlay) cleanup(); };
+        }
+        document.body.appendChild(overlay);
+    }
+    
+    function showHonorWall(){
+        if(!honorUnlocked) { showToast("❌ 请先通关一周目解锁荣誉墙"); return; }
+        let modal = document.createElement('div'); modal.className='honor-modal';
+        let html = '<h3>🏅 荣誉殿堂</h3><div style="max-height:60vh; overflow-y:auto;">';
+        if(honors.length===0) html += '<p>暂无荣誉，继续通关获取</p>';
+        honors.forEach((h,idx)=>{
+            if(h.type === 'image'){
+                html += `<div class="honor-item" data-idx="${idx}" data-type="image" data-src="${h.src}"><div>📸 ${h.name}</div><img class="honor-img" src="${h.src}" onerror="this.style.display='none'"></div>`;
+            } else {
+                html += `<div class="honor-item" data-idx="${idx}" data-type="video" data-src="${h.src}"><div>🎬 ${h.name}</div><video class="honor-video" src="${h.src}" style="width:100%; pointer-events:none;"></video></div>`;
+            }
+        });
+        html += '</div><button onclick="this.parentElement.remove()">关闭</button>';
+        modal.innerHTML = html;
+        document.body.appendChild(modal);
+        modal.querySelectorAll('.honor-item').forEach(item => {
+            item.onclick = (e) => {
+                e.stopPropagation();
+                let type = item.dataset.type;
+                let src = item.dataset.src;
+                showFullscreenMedia(src, type);
+            };
+        });
+    }
+    
+    function showWeekSelector(){
+        let modal = document.createElement('div'); modal.className='honor-modal';
+        let html = '<h3>📅 选择周目</h3><div style="display:flex; flex-wrap:wrap; gap:10px; justify-content:center;">';
+        for(let i=1; i<=10; i++){
+            let disabled = (i > maxWeekUnlocked);
+            html += `<button style="margin:5px; padding:8px 15px; ${disabled?'opacity:0.5;':''}" onclick="selectWeek(${i})" ${disabled?'disabled':''}>${i}周目${i===currentWeek?' ✓':''}</button>`;
+        }
+        html += '</div><button onclick="this.parentElement.remove()">关闭</button>';
+        modal.innerHTML = html;
+        document.body.appendChild(modal);
+    }
+    
+    window.selectWeek = function(week){
+        if(week > maxWeekUnlocked) return;
+        currentWeek = week;
+        currentLevel = 0;
+        initGame();
+        document.querySelector('.honor-modal')?.remove();
+        showToast(`切换到 ${week}周目`, 1500);
+    };
+    
+    let quickWinLock = false;
+    function quickWin() {
+        if(gameMode !== 'level') return;
+        if(isGameFinished || quickWinLock) return;
+        if(isAllCleared()) return;
+        quickWinLock = true;
+        clearInterval(timer); if(timelimitTimer) clearInterval(timelimitTimer);
+        isGameFinished = true;
+        for(let i=0;i<ROW;i++){
+            for(let j=0;j<COL;j++){
+                if(map[i][j] !== null){
+                    map[i][j] = null;
+                    if(domCells[i][j]) { domCells[i][j].classList.add('matched'); domCells[i][j].innerHTML = ""; }
+                }
+            }
+        }
+        setTimeout(()=>{ onGameWin(); quickWinLock = false; }, 100);
+    }
+    
+    async function onGameWin(){ 
+        clearInterval(timer); if(timelimitTimer) clearInterval(timelimitTimer); if(timeraceInterval) clearInterval(timeraceInterval);
+        isGameFinished=true;
+        if(gameMode==='level'){ 
+            if(currentLevel+1 < levelStages.length){
+                unlockLevelForWeek(currentWeek, currentLevel+1);
+            }
+            await showObtainEffectAndFix(currentLevel, false); 
+            if(currentLevel === 4 && currentWeek === 1 && !bgmUnlocked.bgm0) { unlockBgm0(); }
+            if(currentLevel + 1 >= levelStages.length){ 
+                if(!honorUnlocked){
+                    honorUnlocked = true;
+                    document.getElementById('honorWallBtn').style.display = 'inline-block';
+                    addHonor('image', 'images/r1.png', '一周目通关荣誉');
+                    showToast("🏅 荣誉墙已解锁！继续通关获取更多荣誉", 3000);
+                }
+                if(currentWeek >= 1 && currentWeek <= 10){
+                    let honorName = `${currentWeek}周目通关荣誉`;
+                    let honorSrc = currentWeek === 1 ? 'images/r1.png' : `video/r${currentWeek}.mp4`;
+                    addHonor(honorSrc.endsWith('.png') ? 'image' : 'video', honorSrc, honorName);
+                }
+                if(currentWeek >= maxWeekUnlocked && currentWeek < 10){
+                    maxWeekUnlocked = currentWeek + 1;
+                    saveMaxWeek();
+                    if(maxWeekUnlocked === 2) document.getElementById('weekSelectBtn').style.display = 'inline-block';
+                    showToast(`✨ 解锁 ${maxWeekUnlocked}周目！可在周目选择中切换`, 3000);
+                }
+                if(currentWeek === 1 && !bgmUnlocked.bgm00) { unlockBgm00(); }
+                showToast(`🎉 完成 ${currentWeek}周目！`, 2000);
+                currentLevel = 0;
+                initGame();
+            } else {
+                setTimeout(()=>{ currentLevel++; initGame(); },1200);
+            }
+        } else if(gameMode==='timelimit'){ saveScoreToHistory(currentRunScore); showRankModal(true, currentRunScore, false); currentRunScore=0; initGame(); } 
+        else if(gameMode==='timerace'){ let endTime=Date.now(); let usedMs=endTime-timeraceStartTime; saveTimeToHistory(usedMs); showRankModal(true, null, true, usedMs); initGame(); } 
+        else if(gameMode==='endless'){ saveScoreToHistory(currentRunScore); showRankModal(true, currentRunScore, false); currentRunScore=0; initGame(); }
+        isGameFinished=false;
+    }
+    
+    function initGame(){ 
+        clearInterval(timer); if(timelimitTimer) clearInterval(timelimitTimer); if(timeraceInterval) clearInterval(timeraceInterval); 
+        if(selectedCell){ selectedCell.classList.remove('selected'); selectedCell=null; } 
+        if(gameMode==='endless'){ currentRunScore=score; } else if(gameMode!=='timerace'){ score=0; lastAlert30Played=false; } 
+        document.getElementById('score').innerText=score; clearLine(); isGameFinished=false; timeraceStartTime=null;
+        if(gameMode==='level'){ 
+            let cfg=levelStages[currentLevel]; let finalTime=getLevelTime(currentLevel); 
+            document.getElementById('levelName').innerHTML=`${cfg.name} [${currentWeek}周目]`;
+            document.getElementById('level').innerText=`${currentLevel+1}/9`; ROW=cfg.row; COL=cfg.col; timeLeft=finalTime; document.getElementById('time').innerText=timeLeft;
+        } else if(gameMode==='endless'){ document.getElementById('levelName').innerHTML="♾️ 无尽模式"; document.getElementById('level').innerText="∞"; ROW=endlessConfig.row; COL=endlessConfig.col; timeLeft=999999; document.getElementById('time').innerText="∞"; }
+        else if(gameMode==='timelimit'){ document.getElementById('levelName').innerHTML="⏳ 限时模式·90秒冲分"; document.getElementById('level').innerText="限时"; ROW=timelimitConfig.row; COL=timelimitConfig.col; timeLeft=timelimitConfig.limitTime; document.getElementById('time').innerText=timeLeft; score=0; currentRunScore=0; }
+        else if(gameMode==='timerace'){ document.getElementById('levelName').innerHTML="⏱️ 计时模式·最快通关"; document.getElementById('level').innerText="计时"; ROW=timeraceConfig.row; COL=timeraceConfig.col; timeLeft=0; document.getElementById('time').innerText="0.00s"; score=0; timeraceStartTime=Date.now(); timeraceInterval = setInterval(()=>{ if(!isPaused && !isGameFinished && gameMode==='timerace' && timeraceStartTime){ let elapsed=(Date.now()-timeraceStartTime)/1000; document.getElementById('time').innerText=elapsed.toFixed(2)+"s"; } }, 100); }
+        map=generateEvenMap(ROW,COL); const boardDiv=document.getElementById('board'); boardDiv.innerHTML=""; boardDiv.style.gridTemplateColumns=`repeat(${COL}, minmax(0,1fr))`; domCells=[];
+        for(let i=0;i<ROW;i++){ domCells[i]=[]; for(let j=0;j<COL;j++){ const cd=document.createElement('div'); cd.className='cell'; cd.dataset.r=i; cd.dataset.c=j; cd.innerHTML=`<img src="${map[i][j]}">`; cd.addEventListener('click',onCellClick); boardDiv.appendChild(cd); domCells[i][j]=cd; } }
+        if(gameMode==='level') startTimer(); 
+        if(gameMode==='timelimit') startTimelimitTimer();
+        setTimeout(()=>{ if(!hasRemainingMove()) reshuffleBoard(); },150);
+        updateLevelSelector(); 
+        checkWyxLevelAndBgm();
+        if(!isManualSelect && !isInWyxLevel) startBgmCycle(true);
+        updateBgmUI(); isPaused=false; document.getElementById('pauseBtn').innerHTML='⏸️ 暂停';
+    }
+    
+    function restartCurrent(){ if(gameMode==='level'){ initGame(); } else { if(gameMode==='endless') saveScoreToHistory(currentRunScore); if(gameMode==='timelimit') { if(currentRunScore>0) saveScoreToHistory(currentRunScore); } initGame(); } }
+    function togglePause(){ if(gameMode!=='level' && gameMode!=='timelimit') { showToast("仅闯关/限时模式可暂停"); return; } isPaused=!isPaused; if(isPaused){ if(timer) clearInterval(timer); if(timelimitTimer) clearInterval(timelimitTimer); document.getElementById('pauseBtn').innerHTML='▶️ 继续'; } else { if(gameMode==='level') startTimer(); if(gameMode==='timelimit') startTimelimitTimer(); document.getElementById('pauseBtn').innerHTML='⏸️ 暂停'; } }
+    function showRank(){ if(gameMode==='endless') showRankModal(true, currentRunScore, false); else if(gameMode==='timelimit') showRankModal(true, currentRunScore, false); else if(gameMode==='timerace') showRankModal(true, null, true); else showRankModal(false); }
+    function showToast(msg, duration=3000){ const toast=document.createElement('div'); toast.className='toast-tip'; toast.innerText=msg; document.body.appendChild(toast); setTimeout(()=>toast.remove(),duration); }
+    
+    document.querySelectorAll('.mode-btn').forEach(btn=>{ btn.addEventListener('click',()=>{ document.querySelectorAll('.mode-btn').forEach(b=>b.classList.remove('active')); btn.classList.add('active'); gameMode=btn.dataset.mode; if(gameMode==='level'){ if(!getUnlockedLevelsForWeek(currentWeek).includes(currentLevel)) currentLevel=0; } initGame(); }); });
+    document.getElementById('restartBtn').onclick=restartCurrent;
+    document.getElementById('hintBtn').onclick=showHint;
+    document.getElementById('reshuffleBtn').onclick=()=>reshuffleBoard();
+    document.getElementById('pauseBtn').onclick=togglePause;
+    document.getElementById('rankBtn').onclick=showRank;
+    document.getElementById('weekSelectBtn').onclick=showWeekSelector;
+    document.getElementById('honorWallBtn').onclick=showHonorWall;
+    document.getElementById('gameTitle').ondblclick = quickWin;
+    window.addEventListener('resize',()=>{ resizeCanvas(); clearLine(); });
+    
+    maxWeekUnlocked = Math.max(1, savedMaxWeek);
+    weekUnlockedLevels = savedWeekUnlocked;
+    if(!weekUnlockedLevels[1]) weekUnlockedLevels[1] = [0];
+    honors = savedHonors;
+    if(honors.length>0) honorUnlocked = true;
+    if(maxWeekUnlocked > 1) document.getElementById('weekSelectBtn').style.display = 'inline-block';
+    resizeCanvas(); initFloatingBackground(); initGame(); updateBgmUI();
+</script>
+</body>
+</html>
+```
